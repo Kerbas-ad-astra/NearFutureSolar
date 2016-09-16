@@ -1,3 +1,30 @@
+v0.6.2
+------
+- KSP 1.1.3
+- Updated bundled MM version
+
+v0.6.1
+------
+- KSP 1.1.2
+- Updated bundled MM version
+- Fixed curved panels not being retractable in the editor
+
+v0.6.0
+------
+- KSP 1.1 rebuild
+- Added part search tags
+
+v0.5.5
+------
+- Fixed deployable curved panels not updating their GUI fields when closed
+- Fixed curved panels not being deployable in the VAB
+- Fixed Toggle field of curved panels being shown (should be action group only)
+
+v0.5.4
+------
+- KSP 1.05 repack
+- Added MiniAVC version checking
+
 v0.5.3
 ------
 - Fixed a part name and CTT patch typo

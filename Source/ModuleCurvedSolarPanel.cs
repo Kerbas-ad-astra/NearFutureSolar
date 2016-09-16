@@ -33,27 +33,29 @@ namespace NearFutureSolar
         [KSPField(isPersistant = false, guiActive = true, guiName = "Energy Flow")]
         public string EnergyFlow;
 
+        [KSPField(isPersistant = false)]
         public float energyFlow;
+
         public float sunExposure;
 
         // ACTIONS
         // -----------------
         // Deploy Panels
-        [KSPEvent(guiActive = true, guiName = "Deploy Panel", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Deploy Panel", active = true, guiActiveEditor = true)]
         public void DeployPanels()
         {
             Deploy();
 
         }
         // Retract Panels
-        [KSPEvent(guiActive = true, guiName = "Retract Panel", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Retract Panel", active = false, guiActiveEditor = true)]
         public void RetractPanels()
         {
             Retract();
 
         }
         // Toggle Panels
-        [KSPEvent(guiActive = true, guiName = "Toggle Panel", active = true)]
+        [KSPEvent(guiActive = false, guiName = "Toggle Panel", active = false)]
         public void TogglePanels()
         {
 
@@ -165,7 +167,7 @@ namespace NearFutureSolar
 
         public override void OnStart(PartModule.StartState state)
         {
-            
+
             panelTransforms = part.FindModelTransforms(PanelTransformName);
             panelCount = panelTransforms.Length;
             chargePerTransform = TotalEnergyRate / panelCount;
@@ -216,7 +218,7 @@ namespace NearFutureSolar
         {
             if (flight)
             {
-                if (!Deployable || (Deployable && (State == ModuleDeployableSolarPanel.panelStates.EXTENDED )))
+                if (!Deployable || (Deployable && (State == ModuleDeployableSolarPanel.panelStates.EXTENDED ) ))
                 {
                     sunExposure = 0f;
                     energyFlow = 0f;
@@ -271,13 +273,22 @@ namespace NearFutureSolar
                     }
 
                     part.RequestResource(ResourceName, (-realFlow) * TimeWarp.fixedDeltaTime);
+                } else if  (Deployable && (State == ModuleDeployableSolarPanel.panelStates.BROKEN ))
+                {
+                    SunExposure = "Broken!";
+                    EnergyFlow = "Panels Retracted";
+                }
+                else if (Deployable && (State == ModuleDeployableSolarPanel.panelStates.RETRACTED))
+                {
+                    SunExposure = "Panels Retracted";
+                    EnergyFlow = "Panels Retracted";
                 }
             }
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
-            
+
             if (Deployable)
             {
                 foreach (AnimationState deployState in deployStates)
@@ -314,7 +325,7 @@ namespace NearFutureSolar
             RaycastHit hit;
             if (Physics.Raycast(refXForm.position,  refXForm.position - sun.transform.position,out hit,2500f))
             {
-                
+
                 Transform hitObj = hit.transform;
                 Part pt = hitObj.GetComponent<Part>();
                 if (pt != null && pt != part)
@@ -341,10 +352,10 @@ namespace NearFutureSolar
             if (currentBody != sun)
             {
 
-                Vector3d vT = sun.position - part.vessel.GetWorldPos3D();
-                Vector3d vC = currentBody.position - part.vessel.GetWorldPos3D();
+                Vector3 vT = sun.position - part.vessel.GetWorldPos3D();
+                Vector3 vC = currentBody.position - part.vessel.GetWorldPos3D();
                 // if true, behind horizon plane
-                if (Vector3d.Dot(vT, vC) > (vC.sqrMagnitude - currentBody.Radius * currentBody.Radius))
+                if (Vector3.Dot(vT, vC) > (vC.sqrMagnitude - currentBody.Radius * currentBody.Radius))
                 {
                     // if true, obscured
                     if ((Mathf.Pow(Vector3.Dot(vT, vC), 2) / vT.sqrMagnitude) > (vC.sqrMagnitude - currentBody.Radius * currentBody.Radius))
@@ -383,7 +394,7 @@ namespace NearFutureSolar
 
             //}
 
-            
+
         }
 
 
@@ -405,6 +416,6 @@ namespace NearFutureSolar
             }
             return checker;
         }
-    
+
     }
 }
