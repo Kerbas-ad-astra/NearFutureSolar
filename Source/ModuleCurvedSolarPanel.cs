@@ -86,11 +86,11 @@ namespace NearFutureSolar
             if (!Deployable)
                 return;
 
-            foreach (AnimationState deployState in deployStates)
+            for (int i = 0; i < deployStates.Length ; i++)
             {
-                deployState.speed = 1;
+                deployStates[i].speed = 1;
             }
-            State = ModuleDeployableSolarPanel.panelStates.EXTENDING;
+            State = ModuleDeployablePart.DeployState.EXTENDING;
         }
 
         // Retract Panels
@@ -99,35 +99,35 @@ namespace NearFutureSolar
             if (!Deployable)
                 return;
 
-            foreach (AnimationState deployState in deployStates)
+            for (int i = 0; i < deployStates.Length ; i++)
             {
-                deployState.speed = -1;
+                deployStates[i].speed = -1;
             }
-            State = ModuleDeployableSolarPanel.panelStates.RETRACTING;
+            State = ModuleDeployablePart.DeployState.RETRACTING;
         }
         // Toggle Panels
         public void Toggle()
         {
-            if (State == ModuleDeployableSolarPanel.panelStates.EXTENDED)
+            if (State == ModuleDeployablePart.DeployState.EXTENDED)
                 Retract();
-            else if (State == ModuleDeployableSolarPanel.panelStates.RETRACTED)
+            else if (State == ModuleDeployablePart.DeployState.RETRACTED)
                 Deploy();
             else
                 return;
         }
 
         // Get the state
-        public ModuleDeployableSolarPanel.panelStates State
+        public ModuleDeployablePart.DeployState State
         {
             get
             {
                 try
                 {
-                    return (ModuleDeployableSolarPanel.panelStates)Enum.Parse(typeof(ModuleDeployableSolarPanel.panelStates), SavedState);
+                    return (ModuleDeployablePart.DeployState)Enum.Parse(typeof(ModuleDeployablePart.DeployState), SavedState);
                 }
                 catch
                 {
-                    State = ModuleDeployableSolarPanel.panelStates.RETRACTED;
+                    State = ModuleDeployablePart.DeployState.RETRACTED;
                     return State;
                 }
             }
@@ -170,25 +170,25 @@ namespace NearFutureSolar
 
             panelTransforms = part.FindModelTransforms(PanelTransformName);
             panelCount = panelTransforms.Length;
-            chargePerTransform = TotalEnergyRate / panelCount;
+
 
             if (Deployable)
             {
                 deployStates = Utils.SetUpAnimation(DeployAnimation, this.part);
 
 
-                if (State == ModuleDeployableSolarPanel.panelStates.EXTENDED || State == ModuleDeployableSolarPanel.panelStates.EXTENDING)
+                if (State == ModuleDeployablePart.DeployState.EXTENDED || State == ModuleDeployablePart.DeployState.EXTENDING)
                 {
-                    foreach (AnimationState deployState in deployStates)
+                    for (int i = 0; i < deployStates.Length ; i++)
                     {
-                        deployState.normalizedTime = 1f;
+                        deployStates[i].normalizedTime = 1f;
                     }
                 }
-                else if (State == ModuleDeployableSolarPanel.panelStates.RETRACTED || State == ModuleDeployableSolarPanel.panelStates.RETRACTING)
+                else if (State == ModuleDeployablePart.DeployState.RETRACTED || State == ModuleDeployablePart.DeployState.RETRACTING)
                 {
-                    foreach (AnimationState deployState in deployStates)
+                    for (int i = 0; i < deployStates.Length ; i++)
                     {
-                        deployState.normalizedTime = 0f;
+                        deployStates[i].normalizedTime = 0f;
                     }
                 }
                 else
@@ -218,7 +218,7 @@ namespace NearFutureSolar
         {
             if (flight)
             {
-                if (!Deployable || (Deployable && (State == ModuleDeployableSolarPanel.panelStates.EXTENDED ) ))
+                if (!Deployable || (Deployable && (State == ModuleDeployablePart.DeployState.EXTENDED ) ))
                 {
                     sunExposure = 0f;
                     energyFlow = 0f;
@@ -228,13 +228,15 @@ namespace NearFutureSolar
                     string body = "";
                     string obscuringPart = "";
 
-                    foreach (Transform panel in panelTransforms)
+                    chargePerTransform = TotalEnergyRate / panelCount;
+
+                    for (int i = 0; i < panelTransforms.Length; i++)
                     {
                         float angle = 0f;
 
-                        if (SolarLOS(panel, out angle, out body))
+                        if (SolarLOS(panelTransforms[i], out angle, out body))
                         {
-                            if (PartLOS(panel, out obscuringPart))
+                            if (PartLOS(panelTransforms[i], out obscuringPart))
                             {
                                 sunExposure += Mathf.Clamp01(Mathf.Cos(angle * Mathf.Deg2Rad)) / panelCount;
                                 energyFlow += Mathf.Clamp01(Mathf.Cos(angle * Mathf.Deg2Rad)) * chargePerTransform;
@@ -273,12 +275,12 @@ namespace NearFutureSolar
                     }
 
                     part.RequestResource(ResourceName, (-realFlow) * TimeWarp.fixedDeltaTime);
-                } else if  (Deployable && (State == ModuleDeployableSolarPanel.panelStates.BROKEN ))
+                } else if  (Deployable && (State == ModuleDeployablePart.DeployState.BROKEN ))
                 {
                     SunExposure = "Broken!";
                     EnergyFlow = "Panels Retracted";
                 }
-                else if (Deployable && (State == ModuleDeployableSolarPanel.panelStates.RETRACTED))
+                else if (Deployable && (State == ModuleDeployablePart.DeployState.RETRACTED))
                 {
                     SunExposure = "Panels Retracted";
                     EnergyFlow = "Panels Retracted";
@@ -291,23 +293,23 @@ namespace NearFutureSolar
 
             if (Deployable)
             {
-                foreach (AnimationState deployState in deployStates)
+                for (int i = 0; i < deployStates.Length ; i++)
                 {
-                    deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
+                    deployStates[i].normalizedTime = Mathf.Clamp01(deployStates[i].normalizedTime);
                 }
-                if (State == ModuleDeployableSolarPanel.panelStates.RETRACTING)
+                if (State == ModuleDeployablePart.DeployState.RETRACTING)
                 {
                     if (EvalAnimationCompletionReversed(deployStates) == 0f)
-                        State = ModuleDeployableSolarPanel.panelStates.RETRACTED;
+                        State = ModuleDeployablePart.DeployState.RETRACTED;
                 }
 
-                if (State == ModuleDeployableSolarPanel.panelStates.EXTENDING)
+                if (State == ModuleDeployablePart.DeployState.EXTENDING)
                 {
                     if (EvalAnimationCompletion(deployStates) == 1f)
-                        State = ModuleDeployableSolarPanel.panelStates.EXTENDED;
+                        State = ModuleDeployablePart.DeployState.EXTENDED;
                 }
 
-                if ((State == ModuleDeployableSolarPanel.panelStates.EXTENDED && Events["DeployPanels"].active) || (State == ModuleDeployableSolarPanel.panelStates.RETRACTED && Events["RetractPanels"].active))
+                if ((State == ModuleDeployablePart.DeployState.EXTENDED && Events["DeployPanels"].active) || (State == ModuleDeployablePart.DeployState.RETRACTED && Events["RetractPanels"].active))
                 {
                     Events["DeployPanels"].active = !Events["DeployPanels"].active;
                     Events["RetractPanels"].active = !Events["RetractPanels"].active;
@@ -401,18 +403,18 @@ namespace NearFutureSolar
         private float EvalAnimationCompletion(AnimationState[] states)
         {
             float checker = 0f;
-            foreach (AnimationState state in states)
+            for (int i = 0; i < states.Length ; i++)
             {
-                checker = Mathf.Max(state.normalizedTime, checker);
+                checker = Mathf.Max(states[i].normalizedTime, checker);
             }
             return checker;
         }
         private float EvalAnimationCompletionReversed(AnimationState[] states)
         {
             float checker = 1f;
-            foreach (AnimationState state in states)
+            for (int i = 0; i < states.Length ; i++)
             {
-                checker = Mathf.Min(state.normalizedTime, checker);
+                checker = Mathf.Min(states[i].normalizedTime, checker);
             }
             return checker;
         }
